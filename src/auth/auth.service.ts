@@ -64,6 +64,7 @@ export class AuthService {
   const persona = await this.personaRepository
     .createQueryBuilder('persona')
     .leftJoinAndSelect('persona.tipoDocumentoIdentidad', 'tipoDoc')
+    .leftJoinAndSelect('persona.tipoPersona', 'tipoPersona')
     .select([
       'persona.idPersona',
       'persona.nombreCompleto',
@@ -71,7 +72,8 @@ export class AuthService {
       'persona.numeroDocumentoIdentidad',
       'persona.email',
       'persona.celular',
-      'tipoDoc.nombreAbreviado'
+      'tipoDoc.nombreAbreviado',
+      'tipoPersona.nombreTipoPersona'
     ])
     .where('persona.idPersona = :id', { id })
     .getOne();
@@ -86,7 +88,8 @@ export class AuthService {
     nombre: persona.nombreCompleto,
     apellidos: persona.apellidoCompleto,
     documento: persona.numeroDocumentoIdentidad,
-    tipo: persona.tipoDocumentoIdentidad?.nombreAbreviado || 'N/A',
+    tipoDocumento: persona.tipoDocumentoIdentidad?.nombreAbreviado || 'N/A',
+    tipoPersona: persona.tipoPersona?.nombreTipoPersona || 'N/A',
     email: persona.email,
     celular: persona.celular,
   };
