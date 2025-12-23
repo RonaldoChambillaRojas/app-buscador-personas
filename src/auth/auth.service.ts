@@ -60,9 +60,37 @@ export class AuthService {
 
   return queryBuilder.getMany();
 }
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  async findOne(id: number) {
+  const persona = await this.personaRepository
+    .createQueryBuilder('persona')
+    .leftJoinAndSelect('persona.tipoDocumentoIdentidad', 'tipoDoc')
+    .select([
+      'persona.idPersona',
+      'persona.nombreCompleto',
+      'persona.apellidoCompleto',
+      'persona.numeroDocumentoIdentidad',
+      'persona.email',
+      'persona.celular',
+      'tipoDoc.nombreAbreviado'
+    ])
+    .where('persona.idPersona = :id', { id })
+    .getOne();
+
+  if (!persona) {
+    return null; // o lanzar una excepción NotFoundException
   }
+
+  // Transformar al formato requerido
+  return {
+    id: persona.idPersona,
+    nombre: persona.nombreCompleto,
+    apellidos: persona.apellidoCompleto,
+    documento: persona.numeroDocumentoIdentidad,
+    tipo: persona.tipoDocumentoIdentidad?.nombreAbreviado || 'N/A',
+    email: persona.email,
+    celular: persona.celular,
+  };
+}
 
   update(id: number, updateAuthDto: UpdateAuthDto) {
     return `This action updates a #${id} auth`;
