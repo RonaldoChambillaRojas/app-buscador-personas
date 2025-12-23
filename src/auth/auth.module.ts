@@ -2,11 +2,10 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthController } from './auth.controller';
-import { TipoPersona } from './entities/tipo-persona.entity';
-import { TipoDocumento } from './entities/tipo-documento.entity';
+import { Persona, TipoDocumentoIdentidad, TipoPersona } from './entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TipoPersona, TipoDocumento]),],
+  imports: [TypeOrmModule.forFeature([TipoPersona, TipoDocumentoIdentidad, Persona]),],
   controllers: [AuthController],
   providers: [AuthService],
 })

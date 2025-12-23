@@ -1,13 +1,19 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Persona } from './persona.entity';
 
-@Entity('tipopersona')
-export class TipoPersona {
-  @PrimaryGeneratedColumn({ name: 'IdTipoPersona' })
-  idTipoPersona: number;
+@Entity('tipodocumentoidentidad')
+export class TipoDocumentoIdentidad {
+  @PrimaryGeneratedColumn({ name: 'IdTipoDocumentoIdentidad' })
+  idTipoDocumentoIdentidad: number;
 
-  @Column({ name: 'NombreTipoPersona', type: 'varchar', length: 50 })
-  nombreTipoPersona: string;
+  @Column({ name: 'CodigoDocumentoIdentidad', type: 'varchar', length: 10 })
+  codigoDocumentoIdentidad: string;
+
+  @Column({ name: 'NombreTipoDocumentoIdentidad', type: 'varchar', length: 100 })
+  nombreTipoDocumentoIdentidad: string;
+
+  @Column({ name: 'NombreAbreviado', type: 'varchar', length: 50, nullable: true })
+  nombreAbreviado: string;
 
   @Column({ name: 'IndicadorEstado', type: 'varchar', length: 1 })
   indicadorEstado: string;
@@ -24,6 +30,6 @@ export class TipoPersona {
   @Column({ name: 'FechaModificacion', type: 'timestamp', nullable: true })
   fechaModificacion: Date;
 
-  @OneToMany(() => Persona, persona => persona.tipoPersona)
+  @OneToMany(() => Persona, persona => persona.tipoDocumentoIdentidad)
   personas: Persona[];
 }
