@@ -8,12 +8,10 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     AuthModule,
-    // 1. Configurar variables de entorno
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     
-    // 2. Configurar TypeORM Asincrono (para leer las env vars)
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,7 +23,7 @@ import { AuthModule } from './auth/auth.module';
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, // iOJO! Solo para desarrollo (crea tablas auto)
+        synchronize: true, 
       }),
     }),
 
