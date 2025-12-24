@@ -22,32 +22,62 @@ export class AuthService {
   if (!term || term.trim() === '') {
     return [];
   }
-
+ 
   const normalTerm = term.trim();
   const cleanTerm = normalTerm.replace(/\s+/g, '').toUpperCase();
-  
+ 
+  // Dividir el término en palabras individuales
+  const words = normalTerm.split(/\s+/).filter(word => word.length > 0);
+ 
   const queryBuilder = this.personaRepository
     .createQueryBuilder('persona')
     .select([
       'persona.idPersona',
       'persona.razonSocial',
       'persona.numeroDocumentoIdentidad'
-    ])
-    .where(
+    ]);
+ 
+  // Si hay múltiples palabras, buscar cada una
+  if (words.length > 1) {
+    const conditions = words.map((_, index) => {
+      return `(
+        UPPER(persona.razonSocial) LIKE UPPER(:word${index}) OR
+        UPPER(REPLACE(persona.razonSocial, ' ', '')) LIKE UPPER(:word${index})
+      )`;
+    }).join(' AND ');
+ 
+    // Crear objeto de parámetros dinámicamente
+    const params: any = {};
+    words.forEach((word, index) => {
+      params[`word${index}`] = `%${word}%`;
+    });
+ 
+    queryBuilder.where(
+      `(
+        (${conditions}) OR
+        persona.numeroDocumentoIdentidad LIKE :normalTerm
+      )`,
+      { ...params, normalTerm: `%${normalTerm}%` }
+    );
+  } else {
+    // Si es una sola palabra, usar la lógica original
+    queryBuilder.where(
       `(
         UPPER(persona.razonSocial) LIKE UPPER(:normalTerm) OR
         UPPER(REPLACE(persona.razonSocial, ' ', '')) LIKE :cleanTerm OR
         persona.numeroDocumentoIdentidad LIKE :normalTerm
       )`,
-      { 
+      {
         normalTerm: `%${normalTerm}%`,
         cleanTerm: `%${cleanTerm}%`
       }
-    )
+    );
+  }
+ 
+  return queryBuilder
     .orderBy('persona.razonSocial', 'ASC')
-    .limit(50);
-
-  return queryBuilder.getMany();
+    .limit(50)
+    .getMany();
 }
   async findOne(id: number) {
   const persona = await this.personaRepository
