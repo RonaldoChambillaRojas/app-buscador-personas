@@ -23,38 +23,27 @@ export class AuthService {
     return [];
   }
 
-  // Dividir el término en palabras individuales
-  const words = term.trim().split(/\s+/);
+  const normalTerm = term.trim();
+  const cleanTerm = normalTerm.replace(/\s+/g, '').toUpperCase();
+  
   const queryBuilder = this.personaRepository
     .createQueryBuilder('persona')
     .select([
       'persona.idPersona',
-      'persona.nombreCompleto',
-      'persona.apellidoCompleto',
       'persona.razonSocial',
       'persona.numeroDocumentoIdentidad'
-    ]);
-
-  // Buscar cada palabra en todos los campos
-  words.forEach((word, index) => {
-    const paramName = `term${index}`;
-    const searchTerm = `%${word}%`;
-    
-    const condition = `
-      (UPPER(persona.nombreCompleto) LIKE UPPER(:${paramName}) OR
-       UPPER(persona.apellidoCompleto) LIKE UPPER(:${paramName}) OR
-       UPPER(persona.razonSocial) LIKE UPPER(:${paramName}) OR
-       persona.numeroDocumentoIdentidad LIKE :${paramName})
-    `;
-
-    if (index === 0) {
-      queryBuilder.where(condition, { [paramName]: searchTerm });
-    } else {
-      queryBuilder.andWhere(condition, { [paramName]: searchTerm });
-    }
-  });
-
-  queryBuilder
+    ])
+    .where(
+      `(
+        UPPER(persona.razonSocial) LIKE UPPER(:normalTerm) OR
+        UPPER(REPLACE(persona.razonSocial, ' ', '')) LIKE :cleanTerm OR
+        persona.numeroDocumentoIdentidad LIKE :normalTerm
+      )`,
+      { 
+        normalTerm: `%${normalTerm}%`,
+        cleanTerm: `%${cleanTerm}%`
+      }
+    )
     .orderBy('persona.razonSocial', 'ASC')
     .limit(50);
 
@@ -73,16 +62,16 @@ export class AuthService {
       'persona.email',
       'persona.celular',
       'tipoDoc.nombreAbreviado',
-      'tipoPersona.nombreTipoPersona'
+      'tipoPersona.nombreTipoPersona',
+      'persona.razonSocial',
     ])
     .where('persona.idPersona = :id', { id })
     .getOne();
 
   if (!persona) {
-    return null; // o lanzar una excepción NotFoundException
+    return null; 
   }
 
-  // Transformar al formato requerido
   return {
     id: persona.idPersona,
     nombre: persona.nombreCompleto,
@@ -92,6 +81,7 @@ export class AuthService {
     tipoPersona: persona.tipoPersona?.nombreTipoPersona || 'N/A',
     email: persona.email,
     celular: persona.celular,
+    razonSocial: persona.razonSocial,
   };
 }
 
